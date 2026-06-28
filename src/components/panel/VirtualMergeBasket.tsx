@@ -2,6 +2,9 @@ import type { ParcelFeature } from '@/src/types/parcel';
 import type { ZoneFeature } from '@/src/types/zone';
 import { calculateVirtualMergeSummary } from '@/src/lib/calculations';
 import { formatAreaPyeong, formatAreaSqm, formatCurrencyKRW, formatPercent } from '@/src/lib/format';
+import Badge from '@/src/components/ui/Badge';
+import StatCard from '@/src/components/ui/StatCard';
+import WarningBox from '@/src/components/ui/WarningBox';
 
 interface VirtualMergeBasketProps {
   selectedParcels: ParcelFeature[];
@@ -15,11 +18,11 @@ const summarizeCounts = (summary: Record<string, number>) =>
     .map(([key, value]) => `${key} ${value}필지`)
     .join(', ') || '없음';
 
-const getGradeStyle = (grade: string) => {
-  if (grade === '양호') return 'border-emerald-200 bg-emerald-50 text-emerald-700';
-  if (grade === '주의') return 'border-amber-200 bg-amber-50 text-amber-700';
-  if (grade === '위험') return 'border-red-200 bg-red-50 text-red-700';
-  return 'border-slate-200 bg-slate-50 text-slate-700';
+const getGradeTone = (grade: string) => {
+  if (grade === '양호') return 'success';
+  if (grade === '주의') return 'warning';
+  if (grade === '위험') return 'danger';
+  return 'neutral';
 };
 
 export default function VirtualMergeBasket({ selectedParcels, selectedZone }: VirtualMergeBasketProps) {
@@ -52,28 +55,15 @@ export default function VirtualMergeBasket({ selectedParcels, selectedZone }: Vi
           <h3 className="font-semibold">가상 합필 바구니</h3>
           <p className="mt-1 text-sm text-slate-600">개발 검토용 필지 묶음 시뮬레이션입니다.</p>
         </div>
-        <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${getGradeStyle(summary.grade)}`}>{summary.grade}</span>
+        <Badge tone={getGradeTone(summary.grade)}>{summary.grade}</Badge>
       </div>
 
       <div className="mt-3 rounded-lg border border-slate-200 p-3">
         <div className="grid grid-cols-2 gap-3 text-sm">
-          <div>
-            <div className="text-xs text-slate-500">선택 필지 수</div>
-            <div className="font-semibold">{summary.parcelCount}필지</div>
-          </div>
-          <div>
-            <div className="text-xs text-slate-500">합산 대지면적</div>
-            <div className="font-semibold">{formatAreaSqm(summary.totalArea)}</div>
-            <div className="text-xs text-slate-500">{formatAreaPyeong(summary.totalArea)}</div>
-          </div>
-          <div>
-            <div className="text-xs text-slate-500">총 공시지가</div>
-            <div className="font-semibold">{formatCurrencyKRW(summary.totalOfficialLandValue)}</div>
-          </div>
-          <div>
-            <div className="text-xs text-slate-500">가상 합필 등급</div>
-            <div className="font-semibold">{summary.grade}</div>
-          </div>
+          <StatCard label="선택 필지 수" value={`${summary.parcelCount}필지`} />
+          <StatCard label="합산 대지면적" value={formatAreaSqm(summary.totalArea)} helper={formatAreaPyeong(summary.totalArea)} />
+          <StatCard label="총 공시지가" value={formatCurrencyKRW(summary.totalOfficialLandValue)} />
+          <StatCard label="가상 합필 등급" value={summary.grade} />
         </div>
       </div>
 
@@ -91,13 +81,14 @@ export default function VirtualMergeBasket({ selectedParcels, selectedZone }: Vi
         <div><span className="font-medium">필지 연속성 여부:</span> {summary.isContinuous ? '연속' : '비연속 또는 검토 필요'}</div>
       </div>
 
-      <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
-        <div className="font-semibold">경고 및 안내</div>
-        <ul className="mt-2 list-disc space-y-1 pl-5">
-          {warnings.map((warning) => (
-            <li key={warning}>{warning}</li>
-          ))}
-        </ul>
+      <div className="mt-3">
+        <WarningBox title="경고 및 안내">
+          <ul className="list-disc space-y-1 pl-5">
+            {warnings.map((warning) => (
+              <li key={warning}>{warning}</li>
+            ))}
+          </ul>
+        </WarningBox>
       </div>
 
       <div className="mt-3 rounded bg-slate-50 p-3 text-sm text-slate-700">{noticeText}</div>

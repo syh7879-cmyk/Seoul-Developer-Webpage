@@ -28,17 +28,21 @@ export const getSavedProjects = (): SavedProject[] => {
 export const saveProject = (project: SavedProject): void => {
   if (!isBrowser()) return;
 
-  const projects = getSavedProjects();
-  const now = new Date().toISOString();
-  const existing = projects.find((item) => item.projectId === project.projectId);
-  const normalizedProject: SavedProject = {
-    ...project,
-    createdAt: existing?.createdAt ?? project.createdAt,
-    updatedAt: now,
-  };
-  const nextProjects = [normalizedProject, ...projects.filter((item) => item.projectId !== project.projectId)];
+  try {
+    const projects = getSavedProjects();
+    const now = new Date().toISOString();
+    const existing = projects.find((item) => item.projectId === project.projectId);
+    const normalizedProject: SavedProject = {
+      ...project,
+      createdAt: existing?.createdAt ?? project.createdAt,
+      updatedAt: now,
+    };
+    const nextProjects = [normalizedProject, ...projects.filter((item) => item.projectId !== project.projectId)];
 
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nextProjects));
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nextProjects));
+  } catch {
+    return;
+  }
 };
 
 export const loadProject = (projectId: string): SavedProject | null => {
@@ -49,11 +53,19 @@ export const loadProject = (projectId: string): SavedProject | null => {
 export const deleteProject = (projectId: string): void => {
   if (!isBrowser()) return;
 
-  const nextProjects = getSavedProjects().filter((project) => project.projectId !== projectId);
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nextProjects));
+  try {
+    const nextProjects = getSavedProjects().filter((project) => project.projectId !== projectId);
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nextProjects));
+  } catch {
+    return;
+  }
 };
 
 export const clearAllProjects = (): void => {
   if (!isBrowser()) return;
-  window.localStorage.removeItem(STORAGE_KEY);
+  try {
+    window.localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    return;
+  }
 };
