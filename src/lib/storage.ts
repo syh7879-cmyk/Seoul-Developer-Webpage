@@ -1,57 +1,59 @@
-import type { ParcelFeature } from '@/src/types/parcel';
+import type { SavedProject } from '@/src/types/project';
 
-export interface FeasibilityInputs {
-  floorAreaRatio: number;
-  averageHouseArea: number;
-  expectedSalePrice: number;
-  constructionCostPerSqm: number;
-  otherCostRatio: number;
-}
+const STORAGE_KEY = 'redevelopment-virtual-merge-projects';
 
-export interface ProjectRecord {
-  projectId: string;
-  projectName: string;
-  createdAt: string;
-  selectedParcelIds: string[];
-  feasibilityInputs: FeasibilityInputs;
-  feasibilityResults: Record<string, number | string | Record<string, number>>;
-  virtualMergeSummary: string;
-}
+const isBrowser = () => typeof window !== 'undefined' && Boolean(window.localStorage);
 
-const STORAGE_KEY = 'regularization-lab-projects';
+export const createProjectId = (): string => {
+  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+    return crypto.randomUUID();
+  }
 
-export const loadProjects = (): ProjectRecord[] => {
-  if (typeof window === 'undefined') return [];
-  const raw = window.localStorage.getItem(STORAGE_KEY);
-  return raw ? JSON.parse(raw) : [];
+  return `project-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 };
 
-export const saveProject = (project: ProjectRecord) => {
-  if (typeof window === 'undefined') return;
-  const projects = loadProjects();
-  const nextProjects = [project, ...projects.filter((item) => item.projectId !== project.projectId)];
+export const getSavedProjects = (): SavedProject[] => {
+  if (!isBrowser()) return [];
+
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
+export const saveProject = (project: SavedProject): void => {
+  if (!isBrowser()) return;
+
+  const projects = getSavedProjects();
+  const now = new Date().toISOString();
+  const existing = projects.find((item) => item.projectId === project.projectId);
+  const normalizedProject: SavedProject = {
+    ...project,
+    createdAt: existing?.createdAt ?? project.createdAt,
+    updatedAt: now,
+  };
+  const nextProjects = [normalizedProject, ...projects.filter((item) => item.projectId !== project.projectId)];
+
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nextProjects));
 };
 
-export const deleteProject = (projectId: string) => {
-  if (typeof window === 'undefined') return;
-  const projects = loadProjects();
-  const nextProjects = projects.filter((item) => item.projectId !== projectId);
+export const loadProject = (projectId: string): SavedProject | null => {
+  const projects = getSavedProjects();
+  return projects.find((project) => project.projectId === projectId) ?? null;
+};
+
+export const deleteProject = (projectId: string): void => {
+  if (!isBrowser()) return;
+
+  const nextProjects = getSavedProjects().filter((project) => project.projectId !== projectId);
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nextProjects));
 };
 
-export const createProjectRecord = (
-  projectName: string,
-  selectedParcels: ParcelFeature[],
-  feasibilityInputs: FeasibilityInputs,
-  feasibilityResults: Record<string, number | string | Record<string, number>>,
-  virtualMergeSummary: string,
-): ProjectRecord => ({
-  projectId: `project-${Date.now()}`,
-  projectName,
-  createdAt: new Date().toISOString(),
-  selectedParcelIds: selectedParcels.map((parcel) => parcel.id),
-  feasibilityInputs,
-  feasibilityResults,
-  virtualMergeSummary,
-});
+export const clearAllProjects = (): void => {
+  if (!isBrowser()) return;
+  window.localStorage.removeItem(STORAGE_KEY);
+};

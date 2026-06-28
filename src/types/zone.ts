@@ -1,3 +1,5 @@
+import type { PolygonGeometry } from '@/src/types/geometry';
+
 export interface ZoneFeature {
   id: string;
   name: string;
@@ -11,5 +13,5 @@ export interface ZoneFeature {
   estimatedGeneralSale: string;
   riskSummary: string[];
   nearbyZones: string[];
-  geometry: GeoJSON.Polygon;
+  geometry: PolygonGeometry;
 }
