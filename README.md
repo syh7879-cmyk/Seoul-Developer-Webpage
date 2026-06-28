@@ -80,6 +80,26 @@ npm run dev -- --hostname 0.0.0.0
 - 실거래가 API 미연동
 - 교통망 데이터 미연동
 
+## API Lab
+
+실제 공공 API 연동 가능성을 검증하기 위한 실험 페이지입니다.
+
+접속 경로:
+
+```txt
+/lab/api
+```
+
+필요한 환경변수:
+
+- `VWORLD_API_KEY`
+- `SEOUL_OPEN_API_KEY`
+- `DATA_GO_KR_API_KEY`
+
+환경변수 예시는 `.env.example`에서 확인할 수 있습니다. 실제 키는 `.env.local`에 넣고 GitHub에 커밋하지 않습니다.
+
+현재 API Lab은 본 서비스에 직접 연결되어 있지 않으며, 실제 API 연동 가능성을 검증하기 위한 별도 실험 공간입니다.
+
 ## 향후 API 연동 순서
 
 1. 서울시 정비사업 데이터
