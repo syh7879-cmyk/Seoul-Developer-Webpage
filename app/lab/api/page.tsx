@@ -33,6 +33,9 @@ const toFeatureCollection = (parcels: StandardParcel[]) => ({
         address: parcel.address,
         areaSqm: parcel.areaSqm,
         source: parcel.source,
+        sourceCrs: parcel.sourceCrs,
+        displayCrs: parcel.displayCrs,
+        crsStatus: parcel.crsStatus,
       },
       geometry: parcel.geometry,
     })),
@@ -240,6 +243,9 @@ export default function ApiLabPage() {
                 <div><span className="font-medium">지번:</span> {selectedParcel.lotNumber ?? '-'}</div>
                 <div><span className="font-medium">면적:</span> {selectedParcel.areaSqm ? `${selectedParcel.areaSqm.toLocaleString()}㎡` : '-'}</div>
                 <div><span className="font-medium">source:</span> {selectedParcel.source}</div>
+                <div><span className="font-medium">원본 좌표계:</span> {selectedParcel.sourceCrs ?? '미확인'}</div>
+                <div><span className="font-medium">표시 좌표계:</span> {selectedParcel.displayCrs}</div>
+                <div><span className="font-medium">좌표계 상태:</span> {selectedParcel.crsStatus}</div>
                 {selectedParcel.tags ? <div><span className="font-medium">태그:</span> {Object.entries(selectedParcel.tags).slice(0, 6).map(([key, value]) => `${key}=${value}`).join(', ')}</div> : null}
               </div>
             ) : (

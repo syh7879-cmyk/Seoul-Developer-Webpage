@@ -1,6 +1,7 @@
 import type { StandardParcel } from '@/src/types/apiLab';
 import type { Position } from '@/src/types/geometry';
 import { asArray, asRecord, getString } from '@/src/lib/adapters/adapterUtils';
+import { createCrsMetadata } from '@/src/lib/crs';
 
 const toTags = (value: unknown): Record<string, string> | undefined => {
   const record = asRecord(value);
@@ -45,6 +46,7 @@ export function adaptOsmOverpassBuildings(raw: unknown): StandardParcel[] {
     const tags = toTags(record.tags);
     const buildingType = tags?.building;
     const name = tags?.name ?? (buildingType ? `OSM building: ${buildingType}` : 'OSM building');
+    const crsMetadata = createCrsMetadata('EPSG:4326');
 
     return [{
       id: `osm-way-${id}`,
@@ -56,6 +58,7 @@ export function adaptOsmOverpassBuildings(raw: unknown): StandardParcel[] {
         type: 'Polygon',
         coordinates: [ring],
       },
+      ...crsMetadata,
       source: 'openstreetmap',
       tags,
       raw: element,

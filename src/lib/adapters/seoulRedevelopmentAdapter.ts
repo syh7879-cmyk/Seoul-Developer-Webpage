@@ -1,5 +1,6 @@
 import type { StandardRedevelopmentZone } from '@/src/types/apiLab';
 import { asGeometry, asRecord, findArrayByPaths, getNumber, getString } from '@/src/lib/adapters/adapterUtils';
+import { createCrsMetadata, normalizeGeometryForDisplay } from '@/src/lib/crs';
 
 const getRows = (raw: unknown): unknown[] =>
   findArrayByPaths(raw, [
@@ -12,6 +13,8 @@ const getRows = (raw: unknown): unknown[] =>
 export function adaptSeoulRedevelopmentZones(raw: unknown): StandardRedevelopmentZone[] {
   return getRows(raw).map((item, index) => {
     const record = asRecord(item);
+    const sourceCrs = getString(record, ['crs', 'CRS', 'srsName']);
+    const crsMetadata = createCrsMetadata(sourceCrs);
 
     return {
       id: getString(record, ['id', 'BIZ_ID', '사업번호']) ?? `seoul-redevelopment-${index}`,
@@ -21,7 +24,8 @@ export function adaptSeoulRedevelopmentZones(raw: unknown): StandardRedevelopmen
       address: getString(record, ['address', 'ADDR', '위치']),
       currentStage: getString(record, ['currentStage', 'PRGRS_STTS', '진행단계']),
       zoneAreaSqm: getNumber(record, ['zoneAreaSqm', 'AREA', '구역면적']),
-      geometry: asGeometry(record.geometry),
+      geometry: normalizeGeometryForDisplay(asGeometry(record.geometry), crsMetadata.sourceCrs),
+      ...crsMetadata,
       source: 'seoul-open-data',
       raw: item,
     };

@@ -37,6 +37,8 @@ export async function GET(request: Request) {
       source: 'vworld-parcels',
       raw: {
         requestUrl: maskUrl(url, ['key']),
+        requestedCrs: 'EPSG:4326',
+        note: 'API Lab 표준 표시 좌표계는 EPSG:4326입니다. 브이월드 응답 좌표계가 다르면 adapter에서 sourceCrs/crsStatus로 표시합니다.',
         status: response.status,
         preview: safeRawPreview(raw),
       },

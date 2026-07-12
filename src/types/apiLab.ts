@@ -1,4 +1,5 @@
 import type { MultiPolygonGeometry, PolygonGeometry } from '@/src/types/geometry';
+import type { CrsStatus, DisplayCrs, KnownCrs } from '@/src/lib/crs';
 
 export type ApiLabResponse<T> = {
   ok: boolean;
@@ -17,6 +18,9 @@ export type StandardParcel = {
   address?: string;
   areaSqm?: number;
   geometry?: PolygonGeometry | MultiPolygonGeometry;
+  sourceCrs?: KnownCrs;
+  displayCrs: DisplayCrs;
+  crsStatus: CrsStatus;
   source: 'vworld' | 'mock' | 'openstreetmap';
   tags?: Record<string, string>;
   raw?: unknown;
@@ -31,6 +35,9 @@ export type StandardRedevelopmentZone = {
   currentStage?: string;
   zoneAreaSqm?: number;
   geometry?: PolygonGeometry | MultiPolygonGeometry;
+  sourceCrs?: KnownCrs;
+  displayCrs: DisplayCrs;
+  crsStatus: CrsStatus;
   source: 'seoul-open-data' | 'manual' | 'mock';
   raw?: unknown;
 };

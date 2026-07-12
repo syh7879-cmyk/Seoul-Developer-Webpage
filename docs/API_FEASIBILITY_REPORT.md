@@ -1,5 +1,14 @@
 # API Feasibility Report
 
+## 좌표계 공통 점검
+
+- 원본 좌표계:
+- 표시 좌표계:
+- 좌표계 변환 필요 여부:
+- EPSG:4326 응답 가능 여부:
+- EPSG:5179 / EPSG:5181 / EPSG:5186 등 국내 투영좌표계 사용 여부:
+- 면적 계산 기준:
+
 ## 0. OpenStreetMap Overpass 건물 polygon
 
 ### 호출 가능 여부

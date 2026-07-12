@@ -45,6 +45,8 @@ export async function GET(request: Request) {
       source: 'osm-overpass-buildings',
       raw: {
         requestUrl: OVERPASS_ENDPOINT,
+        sourceCrs: 'EPSG:4326',
+        displayCrs: 'EPSG:4326',
         query,
         status: response.status,
         preview: safeRawPreview(raw),
