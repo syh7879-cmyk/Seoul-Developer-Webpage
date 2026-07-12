@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import type { ApiLabResponse, StandardParcel } from '@/src/types/apiLab';
 import { canDisplayGeometryOnMap, getCrsIntegrationSteps } from '@/src/lib/crs';
+import { toParcelFeatureCandidates } from '@/src/lib/adapters/parcelFeatureAdapter';
 
 type ApiOption = 'osm-nominatim-places' | 'osm-overpass-buildings' | 'vworld-parcels' | 'seoul-redevelopment' | 'landuse' | 'buildings' | 'landprice';
 
@@ -71,6 +72,7 @@ export default function ApiLabPage() {
   const crsSteps = useMemo(() => getCrsIntegrationSteps(), []);
   const displayReadyCount = useMemo(() => parcels.filter((parcel) => parcel.geometry && canDisplayGeometryOnMap(parcel.crsStatus)).length, [parcels]);
   const transformRequiredCount = useMemo(() => parcels.filter((parcel) => parcel.crsStatus === 'requires-transform').length, [parcels]);
+  const parcelFeatureCandidates = useMemo(() => toParcelFeatureCandidates(parcels), [parcels]);
 
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
@@ -242,6 +244,7 @@ export default function ApiLabPage() {
               <div><span className="font-medium">상태:</span> {response ? (response.ok ? '성공' : '실패') : '대기'}</div>
               <div><span className="font-medium">지도 표시 가능:</span> {displayReadyCount.toLocaleString()}건</div>
               <div><span className="font-medium">좌표 변환 필요:</span> {transformRequiredCount.toLocaleString()}건</div>
+              <div><span className="font-medium">MVP 필지 후보 변환:</span> {parcelFeatureCandidates.length.toLocaleString()}건</div>
               {response?.error ? <div className="rounded bg-red-50 p-2 text-red-700">{response.error}</div> : null}
             </div>
           </section>
@@ -284,6 +287,14 @@ export default function ApiLabPage() {
           <section>
             <h2 className="text-lg font-semibold">표준 타입 변환 결과</h2>
             <pre className="mt-3 max-h-56 overflow-auto rounded bg-slate-950 p-3 text-xs text-slate-100">{truncateJson(api === 'vworld-parcels' || api === 'osm-overpass-buildings' || api === 'osm-nominatim-places' ? parcels.slice(0, 5) : response?.data)}</pre>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-semibold">MVP 필지 후보</h2>
+            <p className="mt-2 text-sm text-slate-600">
+              API Lab 표준 필지를 메인 가상 합필 계산 타입으로 바꿀 수 있는지 확인합니다. 공시지가, 용도지역, 노후도, 매물가격은 실제 API 연결 전까지 미확인 기본값입니다.
+            </p>
+            <pre className="mt-3 max-h-56 overflow-auto rounded bg-slate-950 p-3 text-xs text-slate-100">{truncateJson(parcelFeatureCandidates.slice(0, 5))}</pre>
           </section>
 
           <section>
