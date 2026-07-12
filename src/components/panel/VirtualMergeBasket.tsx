@@ -88,23 +88,43 @@ export default function VirtualMergeBasket({ selectedParcels, selectedZone }: Vi
       </div>
 
       <div className="mt-3">
-        <div className="mb-3 overflow-hidden rounded-lg border border-slate-200">
-          <table className="w-full text-left text-xs">
+        <div className="mb-3 rounded-lg border border-blue-100 bg-blue-50 p-3">
+          <div className="font-medium text-blue-950">검토 포인트 요약</div>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-blue-900">
+            {summary.reviewPoints.map((point) => (
+              <li key={point}>{point}</li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="mb-2 font-medium text-slate-900">개별 필지 데이터</div>
+        <div className="mb-3 overflow-x-auto rounded-lg border border-slate-200">
+          <table className="w-full min-w-[760px] text-left text-xs">
             <thead className="bg-slate-50 text-slate-500">
               <tr>
-                <th className="px-2 py-2 font-medium">필지</th>
+                <th className="px-2 py-2 font-medium">지번</th>
+                <th className="px-2 py-2 font-medium">주소</th>
+                <th className="px-2 py-2 font-medium">대지면적</th>
                 <th className="px-2 py-2 font-medium">대지지분</th>
                 <th className="px-2 py-2 font-medium">매물가격</th>
+                <th className="px-2 py-2 font-medium">공시지가</th>
                 <th className="px-2 py-2 font-medium">노후도</th>
+                <th className="px-2 py-2 font-medium">접도</th>
+                <th className="px-2 py-2 font-medium">구역</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {selectedParcels.map((parcel) => (
                 <tr key={parcel.id}>
                   <td className="px-2 py-2">{parcel.lotNumber}</td>
+                  <td className="px-2 py-2">{parcel.address}</td>
+                  <td className="px-2 py-2">{formatAreaSqm(parcel.areaSqm)}</td>
                   <td className="px-2 py-2">{formatAreaSqm(parcel.landShareSqm ?? parcel.areaSqm)}</td>
                   <td className="px-2 py-2">{formatCurrencyKRW(parcel.askingPriceKRW ?? parcel.areaSqm * parcel.officialLandPricePerSqm * 1.8)}</td>
+                  <td className="px-2 py-2">㎡당 {formatCurrencyKRW(parcel.officialLandPricePerSqm)}</td>
                   <td className="px-2 py-2">{parcel.buildingAge}년</td>
+                  <td className="px-2 py-2">{parcel.roadAccess}</td>
+                  <td className="px-2 py-2">{parcel.isInsideZone ? '포함' : '외부'}</td>
                 </tr>
               ))}
             </tbody>

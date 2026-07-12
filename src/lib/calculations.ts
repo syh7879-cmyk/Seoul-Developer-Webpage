@@ -35,6 +35,7 @@ export interface VirtualMergeSummary {
   zoneInclusion: ZoneInclusionSummary;
   isContinuous: boolean;
   grade: VirtualMergeGrade;
+  reviewPoints: string[];
 }
 
 export const defaultFeasibilityInputs: FeasibilityInputs = {
@@ -158,7 +159,7 @@ export const calculateZoneInclusionSummary = (parcels: ParcelFeature[], selected
   };
 };
 
-export const gradeVirtualMerge = (summary: Omit<VirtualMergeSummary, 'grade'>): VirtualMergeGrade => {
+export const gradeVirtualMerge = (summary: Omit<VirtualMergeSummary, 'grade' | 'reviewPoints'>): VirtualMergeGrade => {
   if (!summary.parcelCount) return '행정검토 필요';
   if (summary.hasNoRoadAccess || summary.zoneInclusion.ratio < 50 || !summary.isContinuous) return '위험';
   if (summary.parcelCount < 2) return '행정검토 필요';
@@ -173,9 +174,59 @@ export const gradeVirtualMerge = (summary: Omit<VirtualMergeSummary, 'grade'>): 
   return '주의';
 };
 
+export const summarizeVirtualMergeReviewPoints = (summary: Omit<VirtualMergeSummary, 'reviewPoints'>): string[] => {
+  if (!summary.parcelCount) return ['필지를 선택하면 개발 검토용 가상 합필 시뮬레이션 검토 포인트가 표시됩니다.'];
+
+  const points: string[] = [];
+
+  if (summary.parcelCount < 2) {
+    points.push('선택 필지가 1개입니다. 가상 합필 검토를 위해서는 2개 이상 필지 조합을 비교하는 것이 좋습니다.');
+  } else {
+    points.push(`${summary.parcelCount}개 필지를 묶어 합산 대지면적 ${Math.round(summary.totalArea).toLocaleString()}㎡ 기준으로 검토 중입니다.`);
+  }
+
+  if (summary.askingPriceToOfficialValueRatio >= 220) {
+    points.push('공시가 대비 매물가격이 높은 편입니다. 실거래가, 권리가액, 감정평가 가능성을 별도로 확인하세요.');
+  } else if (summary.askingPriceToOfficialValueRatio > 0) {
+    points.push('매물가격과 공시지가의 차이를 확인했습니다. 실제 가격 판단은 실거래가와 감정평가 검토가 필요합니다.');
+  }
+
+  if (summary.averageLandShareRatio < 55) {
+    points.push('대지지분율이 낮은 편입니다. 권리관계와 기존 건축물 구분소유 여부를 우선 확인하세요.');
+  } else {
+    points.push('대지지분율은 개발 검토용 비교 지표로 표시했습니다. 실제 권리 산정은 등기와 소유권 검토가 필요합니다.');
+  }
+
+  if (summary.oldBuildingRatio >= 50) {
+    points.push('30년 이상 건축물 비율이 높아 노후도 측면의 검토 필요성이 큽니다.');
+  } else if (summary.averageBuildingAge < 20) {
+    points.push('평균 건축물 노후도가 낮은 편입니다. 정비사업 요건과 노후도 기준을 추가 확인하세요.');
+  }
+
+  if (summary.mixedLandUseZones) {
+    points.push('용도지역이 혼재되어 있어 건축 가능 규모와 인허가 조건이 필지별로 달라질 수 있습니다.');
+  }
+
+  if (summary.roadAccessWarning) {
+    points.push('접도 조건이 약한 필지가 포함되어 도로 폭, 접도 길이, 건축법상 대지 요건 검토가 필요합니다.');
+  }
+
+  if (summary.zoneInclusion.hasOutsideParcel) {
+    points.push('정비구역 밖 필지가 포함되어 구역 편입 가능성이나 별도 개발 가능성을 구분해 검토해야 합니다.');
+  }
+
+  if (!summary.isContinuous) {
+    points.push('비연속 필지가 포함되어 실제 합필이나 공동개발 검토 전에 지적 경계와 인접성을 확인해야 합니다.');
+  }
+
+  points.push('본 검토 포인트는 rule-based 요약이며 실제 합필 가능 여부는 지적, 등기, 소유권, 도시계획, 건축 인허가 검토 필요 사항입니다.');
+
+  return points;
+};
+
 export const calculateVirtualMergeSummary = (parcels: ParcelFeature[], selectedZone?: ZoneFeature | null): VirtualMergeSummary => {
   const roadAccess = summarizeRoadAccess(parcels);
-  const summaryWithoutGrade: Omit<VirtualMergeSummary, 'grade'> = {
+  const summaryWithoutGradeAndReviewPoints: Omit<VirtualMergeSummary, 'grade' | 'reviewPoints'> = {
     parcelCount: parcels.length,
     selectedParcels: parcels,
     totalArea: calculateTotalArea(parcels),
@@ -197,10 +248,14 @@ export const calculateVirtualMergeSummary = (parcels: ParcelFeature[], selectedZ
     zoneInclusion: calculateZoneInclusionSummary(parcels, selectedZone),
     isContinuous: checkParcelContinuity(parcels),
   };
+  const summaryWithoutReviewPoints: Omit<VirtualMergeSummary, 'reviewPoints'> = {
+    ...summaryWithoutGradeAndReviewPoints,
+    grade: gradeVirtualMerge(summaryWithoutGradeAndReviewPoints),
+  };
 
   return {
-    ...summaryWithoutGrade,
-    grade: gradeVirtualMerge(summaryWithoutGrade),
+    ...summaryWithoutReviewPoints,
+    reviewPoints: summarizeVirtualMergeReviewPoints(summaryWithoutReviewPoints),
   };
 };
 
