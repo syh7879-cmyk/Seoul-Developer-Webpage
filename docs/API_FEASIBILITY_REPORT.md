@@ -2,34 +2,40 @@
 
 ## 좌표계 공통 점검
 
-- 원본 좌표계:
-- 표시 좌표계:
-- 좌표계 변환 필요 여부:
-- EPSG:4326 응답 가능 여부:
-- EPSG:5179 / EPSG:5181 / EPSG:5186 등 국내 투영좌표계 사용 여부:
-- 면적 계산 기준:
+- 원본 좌표계: API별 `sourceCrs`로 보존
+- 표시 좌표계: `EPSG:4326`
+- 좌표계 변환 필요 여부: `crsStatus`로 표시
+- EPSG:4326 응답 가능 여부: Nominatim 1차 확인 완료, 브이월드 추가 확인 필요
+- EPSG:5179 / EPSG:5181 / EPSG:5186 등 국내 투영좌표계 사용 여부: 공공 API별 추가 확인 필요
+- 면적 계산 기준: API 제공 면적값 우선, 자체 계산은 투영좌표계 변환 후 검토
 
 ## 0-1. OpenStreetMap Nominatim 장소/경계 polygon
 
 ### 호출 가능 여부
-- 가능 / 불가능 / 추가 확인 필요
+- 가능
+- 확인일: 2026-07-12
+- 테스트 쿼리: `장위동 성북구 서울`
+- API route: `/api/lab/osm/nominatim`
+- 응답 상태: HTTP 200
+- 변환 결과: `ok: true`, `dataCount: 2`
 
 ### 제공 데이터
-- geometry:
-- OSM place id:
-- 표시명:
-- 주소:
-- 좌표계:
-- 응답 포맷:
+- geometry: GeoJSON Polygon 또는 MultiPolygon 가능
+- OSM place id: `osm_id` 기반 외부 ID 확인 가능
+- 표시명: `display_name` 확인 가능
+- 주소: `display_name` 기반 표시 가능
+- 좌표계: `EPSG:4326`
+- 응답 포맷: GeoJSON FeatureCollection
 
 ### 본 프로젝트 연동 판단
-- 바로 연동 가능:
-- adapter 필요:
-- DB 저장 필요:
-- 추가 확인 필요:
+- 바로 연동 가능: 본 서비스 필지 데이터 대체용은 아님. API Lab 외부 GIS 파이프라인 검증용으로 가능
+- adapter 필요: 적용 완료, `adaptOsmNominatimPlaces`
+- DB 저장 필요: 현재는 불필요
+- 추가 확인 필요: 실제 필지 단위 데이터가 아니므로 브이월드 연속지적도 검증 전 단계로만 사용
 
 ### 메모
 - 키 없이 외부 오픈 데이터 호출, adapter 변환, MapLibre 표시, polygon 클릭 속성 확인 흐름을 사전 검증하는 용도입니다.
+- API 키가 없어도 외부 API route, CRS 메타데이터, 표준 타입 변환 흐름을 검증할 수 있습니다.
 
 ## 0-2. OpenStreetMap Overpass 건물 polygon
 
