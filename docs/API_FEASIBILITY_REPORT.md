@@ -1,5 +1,27 @@
 # API Feasibility Report
 
+## 0. OpenStreetMap Overpass 건물 polygon
+
+### 호출 가능 여부
+- 가능 / 불가능 / 추가 확인 필요
+
+### 제공 데이터
+- geometry:
+- OSM way id:
+- 건물 태그:
+- 주소 태그:
+- 좌표계:
+- 응답 포맷:
+
+### 본 프로젝트 연동 판단
+- 바로 연동 가능:
+- adapter 필요:
+- DB 저장 필요:
+- 추가 확인 필요:
+
+### 메모
+- 키 없이 외부 GIS 데이터 호출, adapter 변환, MapLibre 표시, polygon 클릭 속성 확인 흐름을 사전 검증하는 용도입니다.
+
 ## 1. 브이월드 연속지적도
 
 ### 호출 가능 여부

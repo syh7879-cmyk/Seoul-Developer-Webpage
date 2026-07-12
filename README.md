@@ -98,6 +98,8 @@ npm run dev -- --hostname 0.0.0.0
 
 환경변수 예시는 `.env.example`에서 확인할 수 있습니다. 실제 키는 `.env.local`에 넣고 GitHub에 커밋하지 않습니다.
 
+키가 필요한 공공 API를 검증하기 전에, API Lab에서는 `OpenStreetMap Overpass 건물 polygon` 옵션으로 키 없이 외부 오픈 데이터 호출 흐름을 먼저 테스트할 수 있습니다.
+
 현재 API Lab은 본 서비스에 직접 연결되어 있지 않으며, 실제 API 연동 가능성을 검증하기 위한 별도 실험 공간입니다.
 
 ## 향후 API 연동 순서

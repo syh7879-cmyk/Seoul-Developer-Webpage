@@ -4,9 +4,10 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import type { ApiLabResponse, StandardParcel } from '@/src/types/apiLab';
 
-type ApiOption = 'vworld-parcels' | 'seoul-redevelopment' | 'landuse' | 'buildings' | 'landprice';
+type ApiOption = 'osm-overpass-buildings' | 'vworld-parcels' | 'seoul-redevelopment' | 'landuse' | 'buildings' | 'landprice';
 
 const apiOptions: Array<{ value: ApiOption; label: string; keyHint: string; path: string }> = [
+  { value: 'osm-overpass-buildings', label: 'OpenStreetMap Overpass 건물 polygon', keyHint: 'API 키 불필요', path: '/api/lab/osm/overpass' },
   { value: 'vworld-parcels', label: '브이월드 연속지적도', keyHint: 'VWORLD_API_KEY', path: '/api/lab/vworld/parcels' },
   { value: 'seoul-redevelopment', label: '서울시 정비사업 추진 경과', keyHint: 'SEOUL_OPEN_API_KEY', path: '/api/lab/seoul/redevelopment' },
   { value: 'landuse', label: '토지이용계획정보', keyHint: 'DATA_GO_KR_API_KEY', path: '/api/lab/landuse' },
@@ -47,7 +48,7 @@ const truncateJson = (value: unknown) => {
 };
 
 export default function ApiLabPage() {
-  const [api, setApi] = useState<ApiOption>('vworld-parcels');
+  const [api, setApi] = useState<ApiOption>('osm-overpass-buildings');
   const [bbox, setBbox] = useState(defaultBbox);
   const [lng, setLng] = useState(defaultLng);
   const [lat, setLat] = useState(defaultLat);
@@ -151,7 +152,7 @@ export default function ApiLabPage() {
       const body = (await result.json()) as ApiLabResponse<unknown>;
       setResponse(body);
 
-      if (api === 'vworld-parcels' && Array.isArray(body.data)) {
+      if ((api === 'vworld-parcels' || api === 'osm-overpass-buildings') && Array.isArray(body.data)) {
         setParcels(body.data as StandardParcel[]);
       } else {
         setParcels([]);
@@ -208,7 +209,7 @@ export default function ApiLabPage() {
             {isLoading ? '조회 중...' : '조회'}
           </button>
           <div className="mt-4 rounded bg-amber-50 p-3 text-sm text-amber-900">
-            이 페이지는 본 서비스에 직접 연결되지 않은 API 실험실입니다. 선택한 API는 서버 route에서만 API 키를 읽습니다.
+            이 페이지는 본 서비스에 직접 연결되지 않은 API 실험실입니다. Overpass는 키 없이 호출하고, 공공 API 키는 서버 route에서만 읽습니다.
           </div>
           <div className="mt-3 rounded bg-slate-50 p-3 text-sm text-slate-700">
             필요 환경변수: <span className="font-semibold">{selectedOption.keyHint}</span>
@@ -230,22 +231,25 @@ export default function ApiLabPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold">클릭한 필지 속성</h2>
+            <h2 className="text-lg font-semibold">클릭한 GIS 객체 속성</h2>
             {selectedParcel ? (
               <div className="mt-3 space-y-2 text-sm text-slate-700">
+                <div><span className="font-medium">이름:</span> {selectedParcel.name ?? '-'}</div>
+                <div><span className="font-medium">외부 ID:</span> {selectedParcel.externalId ?? selectedParcel.id}</div>
                 <div><span className="font-medium">PNU:</span> {selectedParcel.pnu ?? '-'}</div>
                 <div><span className="font-medium">지번:</span> {selectedParcel.lotNumber ?? '-'}</div>
                 <div><span className="font-medium">면적:</span> {selectedParcel.areaSqm ? `${selectedParcel.areaSqm.toLocaleString()}㎡` : '-'}</div>
                 <div><span className="font-medium">source:</span> {selectedParcel.source}</div>
+                {selectedParcel.tags ? <div><span className="font-medium">태그:</span> {Object.entries(selectedParcel.tags).slice(0, 6).map(([key, value]) => `${key}=${value}`).join(', ')}</div> : null}
               </div>
             ) : (
-              <p className="mt-3 rounded bg-slate-50 p-3 text-sm text-slate-600">지도에서 필지 polygon을 클릭하면 속성이 표시됩니다.</p>
+              <p className="mt-3 rounded bg-slate-50 p-3 text-sm text-slate-600">지도에서 polygon을 클릭하면 속성이 표시됩니다.</p>
             )}
           </section>
 
           <section>
             <h2 className="text-lg font-semibold">표준 타입 변환 결과</h2>
-            <pre className="mt-3 max-h-56 overflow-auto rounded bg-slate-950 p-3 text-xs text-slate-100">{truncateJson(api === 'vworld-parcels' ? parcels.slice(0, 5) : response?.data)}</pre>
+            <pre className="mt-3 max-h-56 overflow-auto rounded bg-slate-950 p-3 text-xs text-slate-100">{truncateJson(api === 'vworld-parcels' || api === 'osm-overpass-buildings' ? parcels.slice(0, 5) : response?.data)}</pre>
           </section>
 
           <section>

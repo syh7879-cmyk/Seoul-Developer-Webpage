@@ -10,12 +10,15 @@ export type ApiLabResponse<T> = {
 
 export type StandardParcel = {
   id: string;
+  externalId?: string;
+  name?: string;
   pnu?: string;
   lotNumber?: string;
   address?: string;
   areaSqm?: number;
   geometry?: PolygonGeometry | MultiPolygonGeometry;
-  source: 'vworld' | 'mock';
+  source: 'vworld' | 'mock' | 'openstreetmap';
+  tags?: Record<string, string>;
   raw?: unknown;
 };
 
