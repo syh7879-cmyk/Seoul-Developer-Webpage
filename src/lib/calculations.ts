@@ -204,8 +204,9 @@ export const calculateVirtualMergeSummary = (parcels: ParcelFeature[], selectedZ
   };
 };
 
-export const calculateFeasibility = (totalLandAreaSqm: number, inputs: FeasibilityInputs): FeasibilityResults => {
+export const calculateFeasibility = (totalLandAreaSqm: number, inputs: FeasibilityInputs, landAcquisitionCostKRW = 0): FeasibilityResults => {
   const totalLandArea = normalizePositiveNumber(totalLandAreaSqm);
+  const landAcquisitionCost = normalizePositiveNumber(landAcquisitionCostKRW);
   const appliedFar = normalizePositiveNumber(inputs.appliedFar);
   const averageUnitAreaSqm = normalizePositiveNumber(inputs.averageUnitAreaSqm);
   const expectedSalePricePerSqm = normalizePositiveNumber(inputs.expectedSalePricePerSqm);
@@ -215,12 +216,14 @@ export const calculateFeasibility = (totalLandAreaSqm: number, inputs: Feasibili
   if (totalLandArea === 0) {
     return {
       totalLandAreaSqm: 0,
+      landAcquisitionCostKRW: landAcquisitionCost,
       expectedGfaSqm: 0,
       expectedHouseholds: 0,
       expectedSalesRevenue: 0,
       expectedConstructionCost: 0,
       expectedOtherCost: 0,
       expectedTotalCost: 0,
+      expectedTotalInvestmentCost: landAcquisitionCost,
       expectedProfit: 0,
       roi: 0,
     };
@@ -232,17 +235,20 @@ export const calculateFeasibility = (totalLandAreaSqm: number, inputs: Feasibili
   const expectedConstructionCost = expectedGfaSqm * constructionCostPerSqm;
   const expectedOtherCost = expectedConstructionCost * (otherCostRatio / 100);
   const expectedTotalCost = expectedConstructionCost + expectedOtherCost;
-  const expectedProfit = expectedSalesRevenue - expectedTotalCost;
-  const roi = expectedTotalCost > 0 ? (expectedProfit / expectedTotalCost) * 100 : 0;
+  const expectedTotalInvestmentCost = landAcquisitionCost + expectedTotalCost;
+  const expectedProfit = expectedSalesRevenue - expectedTotalInvestmentCost;
+  const roi = expectedTotalInvestmentCost > 0 ? (expectedProfit / expectedTotalInvestmentCost) * 100 : 0;
 
   return {
     totalLandAreaSqm: totalLandArea,
+    landAcquisitionCostKRW: landAcquisitionCost,
     expectedGfaSqm,
     expectedHouseholds,
     expectedSalesRevenue,
     expectedConstructionCost,
     expectedOtherCost,
     expectedTotalCost,
+    expectedTotalInvestmentCost,
     expectedProfit,
     roi,
   };

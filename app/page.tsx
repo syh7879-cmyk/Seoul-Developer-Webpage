@@ -22,7 +22,7 @@ export default function Home() {
 
   const totalArea = useMemo(() => calculateTotalArea(selectedParcels), [selectedParcels]);
   const virtualMergeSummary = useMemo(() => calculateVirtualMergeSummary(selectedParcels, selectedZone), [selectedParcels, selectedZone]);
-  const feasibilityResults = useMemo(() => calculateFeasibility(totalArea, inputs), [totalArea, inputs]);
+  const feasibilityResults = useMemo(() => calculateFeasibility(totalArea, inputs, virtualMergeSummary.totalAskingPrice), [totalArea, inputs, virtualMergeSummary.totalAskingPrice]);
   const projectVirtualMergeSummary = useMemo(() => toProjectVirtualMergeSummary(virtualMergeSummary), [virtualMergeSummary]);
 
   const handleToggleParcel = useCallback((parcel: ParcelFeature) => {
@@ -70,7 +70,7 @@ export default function Home() {
 
           <VirtualMergeBasket selectedParcels={selectedParcels} selectedZone={selectedZone} />
 
-          <FeasibilityCard totalLandAreaSqm={totalArea} inputs={inputs} onInputsChange={setInputs} />
+          <FeasibilityCard totalLandAreaSqm={totalArea} landAcquisitionCostKRW={virtualMergeSummary.totalAskingPrice} inputs={inputs} onInputsChange={setInputs} />
 
           <ProjectSavePanel
             selectedParcels={selectedParcels}

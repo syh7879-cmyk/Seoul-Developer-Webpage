@@ -5,6 +5,7 @@ import { formatAreaPyeong, formatAreaSqm, formatCurrencyKRW, formatNumber, forma
 
 interface FeasibilityCardProps {
   totalLandAreaSqm: number;
+  landAcquisitionCostKRW: number;
   inputs: FeasibilityInputs;
   onInputsChange: (inputs: FeasibilityInputs) => void;
 }
@@ -26,8 +27,8 @@ const ResultRow = ({ label, children }: { label: string; children: ReactNode }) 
   </div>
 );
 
-export default function FeasibilityCard({ totalLandAreaSqm, inputs, onInputsChange }: FeasibilityCardProps) {
-  const results: FeasibilityResults = calculateFeasibility(totalLandAreaSqm, inputs);
+export default function FeasibilityCard({ totalLandAreaSqm, landAcquisitionCostKRW, inputs, onInputsChange }: FeasibilityCardProps) {
+  const results: FeasibilityResults = calculateFeasibility(totalLandAreaSqm, inputs, landAcquisitionCostKRW);
   const hasSelectedParcels = totalLandAreaSqm > 0;
 
   const updateInput = (key: InputKey, value: number) => {
@@ -73,16 +74,18 @@ export default function FeasibilityCard({ totalLandAreaSqm, inputs, onInputsChan
           <ResultRow label="예상 연면적">{formatAreaSqm(results.expectedGfaSqm)} / 약 {formatAreaPyeong(results.expectedGfaSqm)}</ResultRow>
           <ResultRow label="예상 세대수">{formatNumber(results.expectedHouseholds)}세대</ResultRow>
           <ResultRow label="예상 총분양수입">{formatCurrencyKRW(results.expectedSalesRevenue)}</ResultRow>
+          <ResultRow label="토지 취득 후보비">{formatCurrencyKRW(results.landAcquisitionCostKRW)}</ResultRow>
           <ResultRow label="예상 총공사비">{formatCurrencyKRW(results.expectedConstructionCost)}</ResultRow>
           <ResultRow label="예상 기타사업비">{formatCurrencyKRW(results.expectedOtherCost)}</ResultRow>
-          <ResultRow label="예상 총사업비">{formatCurrencyKRW(results.expectedTotalCost)}</ResultRow>
+          <ResultRow label="예상 건축·기타사업비">{formatCurrencyKRW(results.expectedTotalCost)}</ResultRow>
+          <ResultRow label="예상 총투입비">{formatCurrencyKRW(results.expectedTotalInvestmentCost)}</ResultRow>
           <ResultRow label="예상 개발이익">{formatCurrencyKRW(results.expectedProfit)}</ResultRow>
           <ResultRow label="ROI">{results.roi.toFixed(1)}%</ResultRow>
         </div>
       ) : null}
 
       <div className="mt-3 rounded bg-blue-50 p-3 text-sm text-blue-800">
-        이 계산은 기초 시뮬레이션이며 실제 사업성은 인허가, 권리관계, 감정평가, 분양가, 공사비, 금융비용, 조합원 분담금 등에 따라 달라질 수 있습니다.
+        이 계산은 mock 매물가격을 토지 취득 후보비로 반영한 기초 시뮬레이션입니다. 실제 사업성은 인허가, 권리관계, 감정평가, 분양가, 공사비, 금융비용, 조합원 분담금 등에 따라 달라질 수 있습니다.
       </div>
     </div>
   );
