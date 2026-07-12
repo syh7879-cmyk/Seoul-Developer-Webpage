@@ -6,6 +6,8 @@ export interface ParcelFeature {
   lotNumber: string;
   address: string;
   areaSqm: number;
+  landShareSqm?: number;
+  askingPriceKRW?: number;
   officialLandPricePerSqm: number;
   landUseZone: string;
   buildingAge: number;

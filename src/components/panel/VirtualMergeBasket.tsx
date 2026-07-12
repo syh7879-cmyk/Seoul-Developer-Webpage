@@ -62,6 +62,8 @@ export default function VirtualMergeBasket({ selectedParcels, selectedZone }: Vi
         <div className="grid grid-cols-2 gap-3 text-sm">
           <StatCard label="선택 필지 수" value={`${summary.parcelCount}필지`} />
           <StatCard label="합산 대지면적" value={formatAreaSqm(summary.totalArea)} helper={formatAreaPyeong(summary.totalArea)} />
+          <StatCard label="합산 대지지분" value={formatAreaSqm(summary.totalLandShareArea)} helper={`평균 ${formatPercent(summary.averageLandShareRatio)}`} />
+          <StatCard label="총 매물가격" value={formatCurrencyKRW(summary.totalAskingPrice)} />
           <StatCard label="총 공시지가" value={formatCurrencyKRW(summary.totalOfficialLandValue)} />
           <StatCard label="가상 합필 등급" value={summary.grade} />
         </div>
@@ -69,11 +71,15 @@ export default function VirtualMergeBasket({ selectedParcels, selectedZone }: Vi
 
       <div className="mt-3 space-y-2 text-sm">
         <div><span className="font-medium">선택 필지 목록:</span> {selectedParcels.map((parcel) => `${parcel.address} (${parcel.lotNumber})`).join(', ')}</div>
+        <div><span className="font-medium">평균 매물가격:</span> {formatCurrencyKRW(summary.averageAskingPrice)}</div>
         <div><span className="font-medium">평균 공시지가:</span> ㎡당 {formatCurrencyKRW(summary.averageLandPrice)}</div>
+        <div><span className="font-medium">공시가 대비 매물가:</span> {formatPercent(summary.askingPriceToOfficialValueRatio)}</div>
+        <div><span className="font-medium">대지지분율:</span> {formatPercent(summary.averageLandShareRatio)}</div>
         <div><span className="font-medium">용도지역 구성:</span> {summarizeCounts(summary.landUseZones)}</div>
         <div><span className="font-medium">용도지역 혼재 여부:</span> {summary.mixedLandUseZones ? '혼재' : '단일'}</div>
         <div><span className="font-medium">평균 건축물 노후도:</span> {summary.averageBuildingAge.toFixed(1)}년</div>
         <div><span className="font-medium">30년 이상 건축물 비율:</span> {formatPercent(summary.oldBuildingRatio)}</div>
+        <div><span className="font-medium">노후도 구간:</span> {summarizeCounts(summary.buildingAgeGroups)}</div>
         <div><span className="font-medium">접도 조건 요약:</span> {summarizeCounts(summary.roadAccess)}</div>
         <div><span className="font-medium">접도 경고 여부:</span> {summary.roadAccessWarning ? '경고' : '없음'}</div>
         <div><span className="font-medium">정비구역 포함 여부:</span> {summary.zoneInclusion.hasOutsideParcel ? '일부 외부 포함' : '전부 포함'}</div>
@@ -82,6 +88,28 @@ export default function VirtualMergeBasket({ selectedParcels, selectedZone }: Vi
       </div>
 
       <div className="mt-3">
+        <div className="mb-3 overflow-hidden rounded-lg border border-slate-200">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-slate-50 text-slate-500">
+              <tr>
+                <th className="px-2 py-2 font-medium">필지</th>
+                <th className="px-2 py-2 font-medium">대지지분</th>
+                <th className="px-2 py-2 font-medium">매물가격</th>
+                <th className="px-2 py-2 font-medium">노후도</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {selectedParcels.map((parcel) => (
+                <tr key={parcel.id}>
+                  <td className="px-2 py-2">{parcel.lotNumber}</td>
+                  <td className="px-2 py-2">{formatAreaSqm(parcel.landShareSqm ?? parcel.areaSqm)}</td>
+                  <td className="px-2 py-2">{formatCurrencyKRW(parcel.askingPriceKRW ?? parcel.areaSqm * parcel.officialLandPricePerSqm * 1.8)}</td>
+                  <td className="px-2 py-2">{parcel.buildingAge}년</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         <WarningBox title="경고 및 안내">
           <ul className="list-disc space-y-1 pl-5">
             {warnings.map((warning) => (

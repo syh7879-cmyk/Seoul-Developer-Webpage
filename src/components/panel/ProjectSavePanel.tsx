@@ -3,6 +3,7 @@ import type { FeasibilityInputs, FeasibilityResults } from '@/src/types/feasibil
 import type { ParcelFeature } from '@/src/types/parcel';
 import type { SavedProject, ProjectVirtualMergeSummary } from '@/src/types/project';
 import type { ZoneFeature } from '@/src/types/zone';
+import { formatAreaSqm, formatCurrencyKRW } from '@/src/lib/format';
 import { createProjectId, deleteProject, getSavedProjects, loadProject, saveProject } from '@/src/lib/storage';
 
 interface ProjectSavePanelProps {
@@ -116,6 +117,9 @@ export default function ProjectSavePanel({
               <div className="text-xs text-slate-500">{new Date(project.updatedAt).toLocaleString()} 업데이트</div>
               <div className="mt-1 text-xs text-slate-600">
                 {project.selectedParcelIds.length}필지 · {project.virtualMergeSummary.virtualMergeGrade}
+              </div>
+              <div className="mt-1 text-xs text-slate-600">
+                대지지분 {formatAreaSqm(project.virtualMergeSummary.totalLandShareAreaSqm ?? 0)} · 매물가 {formatCurrencyKRW(project.virtualMergeSummary.totalAskingPrice ?? 0)}
               </div>
               <div className="mt-2 flex gap-2">
                 <button className="rounded bg-slate-800 px-2 py-1 text-white" onClick={() => handleLoad(project.projectId)}>

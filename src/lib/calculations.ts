@@ -17,12 +17,18 @@ export interface VirtualMergeSummary {
   parcelCount: number;
   selectedParcels: ParcelFeature[];
   totalArea: number;
+  totalLandShareArea: number;
+  averageLandShareRatio: number;
   averageLandPrice: number;
   totalOfficialLandValue: number;
+  totalAskingPrice: number;
+  averageAskingPrice: number;
+  askingPriceToOfficialValueRatio: number;
   landUseZones: Record<string, number>;
   mixedLandUseZones: boolean;
   averageBuildingAge: number;
   oldBuildingRatio: number;
+  buildingAgeGroups: Record<string, number>;
   roadAccess: Record<string, number>;
   roadAccessWarning: boolean;
   hasNoRoadAccess: boolean;
@@ -44,6 +50,23 @@ const normalizePositiveNumber = (value: number) => (Number.isFinite(value) && va
 export const calculateTotalArea = (parcels: ParcelFeature[]) =>
   parcels.reduce((sum, parcel) => sum + parcel.areaSqm, 0);
 
+const getParcelLandShareSqm = (parcel: ParcelFeature) =>
+  normalizePositiveNumber(parcel.landShareSqm ?? parcel.areaSqm);
+
+const getParcelAskingPriceKRW = (parcel: ParcelFeature) => {
+  const officialValue = parcel.areaSqm * parcel.officialLandPricePerSqm;
+  return normalizePositiveNumber(parcel.askingPriceKRW ?? officialValue * 1.8);
+};
+
+export const calculateTotalLandShareArea = (parcels: ParcelFeature[]) =>
+  parcels.reduce((sum, parcel) => sum + getParcelLandShareSqm(parcel), 0);
+
+export const calculateAverageLandShareRatio = (parcels: ParcelFeature[]) => {
+  const totalArea = calculateTotalArea(parcels);
+  if (totalArea === 0) return 0;
+  return (calculateTotalLandShareArea(parcels) / totalArea) * 100;
+};
+
 export const calculateAverageLandPrice = (parcels: ParcelFeature[]) => {
   if (!parcels.length) return 0;
   const total = parcels.reduce((sum, parcel) => sum + parcel.officialLandPricePerSqm, 0);
@@ -52,6 +75,20 @@ export const calculateAverageLandPrice = (parcels: ParcelFeature[]) => {
 
 export const calculateTotalOfficialLandValue = (parcels: ParcelFeature[]) =>
   parcels.reduce((sum, parcel) => sum + parcel.areaSqm * parcel.officialLandPricePerSqm, 0);
+
+export const calculateTotalAskingPrice = (parcels: ParcelFeature[]) =>
+  parcels.reduce((sum, parcel) => sum + getParcelAskingPriceKRW(parcel), 0);
+
+export const calculateAverageAskingPrice = (parcels: ParcelFeature[]) => {
+  if (!parcels.length) return 0;
+  return calculateTotalAskingPrice(parcels) / parcels.length;
+};
+
+export const calculateAskingPriceToOfficialValueRatio = (parcels: ParcelFeature[]) => {
+  const totalOfficialLandValue = calculateTotalOfficialLandValue(parcels);
+  if (totalOfficialLandValue === 0) return 0;
+  return (calculateTotalAskingPrice(parcels) / totalOfficialLandValue) * 100;
+};
 
 export const summarizeLandUseZones = (parcels: ParcelFeature[]) => {
   const summary: Record<string, number> = {};
@@ -74,6 +111,26 @@ export const calculateOldBuildingRatio = (parcels: ParcelFeature[], thresholdYea
   if (!parcels.length) return 0;
   const oldCount = parcels.filter((parcel) => parcel.buildingAge >= thresholdYears).length;
   return (oldCount / parcels.length) * 100;
+};
+
+export const summarizeBuildingAgeGroups = (parcels: ParcelFeature[]) => {
+  const summary: Record<string, number> = {
+    '20년 미만': 0,
+    '20-29년': 0,
+    '30년 이상': 0,
+  };
+
+  parcels.forEach((parcel) => {
+    if (parcel.buildingAge >= 30) {
+      summary['30년 이상'] += 1;
+    } else if (parcel.buildingAge >= 20) {
+      summary['20-29년'] += 1;
+    } else {
+      summary['20년 미만'] += 1;
+    }
+  });
+
+  return summary;
 };
 
 export const summarizeRoadAccess = (parcels: ParcelFeature[]) => {
@@ -122,12 +179,18 @@ export const calculateVirtualMergeSummary = (parcels: ParcelFeature[], selectedZ
     parcelCount: parcels.length,
     selectedParcels: parcels,
     totalArea: calculateTotalArea(parcels),
+    totalLandShareArea: calculateTotalLandShareArea(parcels),
+    averageLandShareRatio: calculateAverageLandShareRatio(parcels),
     averageLandPrice: calculateAverageLandPrice(parcels),
     totalOfficialLandValue: calculateTotalOfficialLandValue(parcels),
+    totalAskingPrice: calculateTotalAskingPrice(parcels),
+    averageAskingPrice: calculateAverageAskingPrice(parcels),
+    askingPriceToOfficialValueRatio: calculateAskingPriceToOfficialValueRatio(parcels),
     landUseZones: summarizeLandUseZones(parcels),
     mixedLandUseZones: hasMixedLandUseZones(parcels),
     averageBuildingAge: calculateAverageBuildingAge(parcels),
     oldBuildingRatio: calculateOldBuildingRatio(parcels),
+    buildingAgeGroups: summarizeBuildingAgeGroups(parcels),
     roadAccess,
     roadAccessWarning: hasRoadAccessWarning(parcels),
     hasNoRoadAccess: (roadAccess['미접'] ?? 0) > 0,
@@ -193,11 +256,17 @@ const summarizeRecord = (summary: Record<string, number>) =>
 export const toProjectVirtualMergeSummary = (summary: VirtualMergeSummary): ProjectVirtualMergeSummary => ({
   selectedParcelCount: summary.parcelCount,
   totalAreaSqm: summary.totalArea,
+  totalLandShareAreaSqm: summary.totalLandShareArea,
+  averageLandShareRatio: summary.averageLandShareRatio,
   averageLandPricePerSqm: summary.averageLandPrice,
   totalOfficialLandValue: summary.totalOfficialLandValue,
+  totalAskingPrice: summary.totalAskingPrice,
+  averageAskingPrice: summary.averageAskingPrice,
+  askingPriceToOfficialValueRatio: summary.askingPriceToOfficialValueRatio,
   landUseSummary: summarizeRecord(summary.landUseZones),
   averageBuildingAge: summary.averageBuildingAge,
   oldBuildingRatio: summary.oldBuildingRatio,
+  buildingAgeSummary: summarizeRecord(summary.buildingAgeGroups),
   roadAccessSummary: summarizeRecord(summary.roadAccess),
   zoneInclusionRatio: summary.zoneInclusion.ratio,
   continuityStatus: summary.isContinuous ? '연속' : '비연속 또는 검토 필요',
