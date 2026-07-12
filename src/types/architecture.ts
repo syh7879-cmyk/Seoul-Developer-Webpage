@@ -2,6 +2,16 @@ export type RegulationSource = 'manual' | 'api-candidate' | 'mixed';
 
 export type MassingType = 'slab' | 'tower' | 'courtyard' | 'stepped';
 
+export type ArchitectureWorkflowStatus = 'supported' | 'partial' | 'future';
+
+export type ArchitectureWorkflowStep = {
+  id: string;
+  title: string;
+  status: ArchitectureWorkflowStatus;
+  currentScope: string;
+  futureScope: string;
+};
+
 export type RegulationInputs = {
   landUseZone: string;
   buildingCoverageRatio: number;
