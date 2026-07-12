@@ -4,9 +4,10 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import type { ApiLabResponse, StandardParcel } from '@/src/types/apiLab';
 
-type ApiOption = 'osm-overpass-buildings' | 'vworld-parcels' | 'seoul-redevelopment' | 'landuse' | 'buildings' | 'landprice';
+type ApiOption = 'osm-nominatim-places' | 'osm-overpass-buildings' | 'vworld-parcels' | 'seoul-redevelopment' | 'landuse' | 'buildings' | 'landprice';
 
 const apiOptions: Array<{ value: ApiOption; label: string; keyHint: string; path: string }> = [
+  { value: 'osm-nominatim-places', label: 'OpenStreetMap Nominatim 장소/경계 polygon', keyHint: 'API 키 불필요', path: '/api/lab/osm/nominatim' },
   { value: 'osm-overpass-buildings', label: 'OpenStreetMap Overpass 건물 polygon', keyHint: 'API 키 불필요', path: '/api/lab/osm/overpass' },
   { value: 'vworld-parcels', label: '브이월드 연속지적도', keyHint: 'VWORLD_API_KEY', path: '/api/lab/vworld/parcels' },
   { value: 'seoul-redevelopment', label: '서울시 정비사업 추진 경과', keyHint: 'SEOUL_OPEN_API_KEY', path: '/api/lab/seoul/redevelopment' },
@@ -19,6 +20,7 @@ const defaultBbox = '127.0529,37.6122,127.0552,37.6144';
 const defaultLng = '127.0542';
 const defaultLat = '37.6134';
 const defaultPnu = '1129013800100010000';
+const defaultQuery = '장위동 성북구 서울';
 
 const toFeatureCollection = (parcels: StandardParcel[]) => ({
   type: 'FeatureCollection' as const,
@@ -51,11 +53,12 @@ const truncateJson = (value: unknown) => {
 };
 
 export default function ApiLabPage() {
-  const [api, setApi] = useState<ApiOption>('osm-overpass-buildings');
+  const [api, setApi] = useState<ApiOption>('osm-nominatim-places');
   const [bbox, setBbox] = useState(defaultBbox);
   const [lng, setLng] = useState(defaultLng);
   const [lat, setLat] = useState(defaultLat);
   const [pnu, setPnu] = useState(defaultPnu);
+  const [query, setQuery] = useState(defaultQuery);
   const [isLoading, setIsLoading] = useState(false);
   const [response, setResponse] = useState<ApiLabResponse<unknown> | null>(null);
   const [parcels, setParcels] = useState<StandardParcel[]>([]);
@@ -149,13 +152,13 @@ export default function ApiLabPage() {
     setResponse(null);
     setSelectedParcelId(null);
 
-    const params = new URLSearchParams({ bbox, lng, lat, pnu });
+    const params = new URLSearchParams({ bbox, lng, lat, pnu, q: query });
     try {
       const result = await fetch(`${selectedOption.path}?${params.toString()}`, { cache: 'no-store' });
       const body = (await result.json()) as ApiLabResponse<unknown>;
       setResponse(body);
 
-      if ((api === 'vworld-parcels' || api === 'osm-overpass-buildings') && Array.isArray(body.data)) {
+      if ((api === 'vworld-parcels' || api === 'osm-overpass-buildings' || api === 'osm-nominatim-places') && Array.isArray(body.data)) {
         setParcels(body.data as StandardParcel[]);
       } else {
         setParcels([]);
@@ -193,6 +196,10 @@ export default function ApiLabPage() {
           <label className="mt-3 grid gap-1 text-sm">
             <span>bbox</span>
             <input className="rounded border px-3 py-2" value={bbox} onChange={(event) => setBbox(event.target.value)} />
+          </label>
+          <label className="mt-3 grid gap-1 text-sm">
+            <span>검색어</span>
+            <input className="rounded border px-3 py-2" value={query} onChange={(event) => setQuery(event.target.value)} />
           </label>
           <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
             <label className="grid gap-1">
@@ -255,7 +262,7 @@ export default function ApiLabPage() {
 
           <section>
             <h2 className="text-lg font-semibold">표준 타입 변환 결과</h2>
-            <pre className="mt-3 max-h-56 overflow-auto rounded bg-slate-950 p-3 text-xs text-slate-100">{truncateJson(api === 'vworld-parcels' || api === 'osm-overpass-buildings' ? parcels.slice(0, 5) : response?.data)}</pre>
+            <pre className="mt-3 max-h-56 overflow-auto rounded bg-slate-950 p-3 text-xs text-slate-100">{truncateJson(api === 'vworld-parcels' || api === 'osm-overpass-buildings' || api === 'osm-nominatim-places' ? parcels.slice(0, 5) : response?.data)}</pre>
           </section>
 
           <section>

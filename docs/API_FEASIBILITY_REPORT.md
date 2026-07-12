@@ -9,7 +9,29 @@
 - EPSG:5179 / EPSG:5181 / EPSG:5186 등 국내 투영좌표계 사용 여부:
 - 면적 계산 기준:
 
-## 0. OpenStreetMap Overpass 건물 polygon
+## 0-1. OpenStreetMap Nominatim 장소/경계 polygon
+
+### 호출 가능 여부
+- 가능 / 불가능 / 추가 확인 필요
+
+### 제공 데이터
+- geometry:
+- OSM place id:
+- 표시명:
+- 주소:
+- 좌표계:
+- 응답 포맷:
+
+### 본 프로젝트 연동 판단
+- 바로 연동 가능:
+- adapter 필요:
+- DB 저장 필요:
+- 추가 확인 필요:
+
+### 메모
+- 키 없이 외부 오픈 데이터 호출, adapter 변환, MapLibre 표시, polygon 클릭 속성 확인 흐름을 사전 검증하는 용도입니다.
+
+## 0-2. OpenStreetMap Overpass 건물 polygon
 
 ### 호출 가능 여부
 - 가능 / 불가능 / 추가 확인 필요
