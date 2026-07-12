@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import type { ApiLabResponse, StandardParcel } from '@/src/types/apiLab';
+import { canDisplayGeometryOnMap, getCrsIntegrationSteps } from '@/src/lib/crs';
 
 type ApiOption = 'osm-nominatim-places' | 'osm-overpass-buildings' | 'vworld-parcels' | 'seoul-redevelopment' | 'landuse' | 'buildings' | 'landprice';
 
@@ -25,7 +26,7 @@ const defaultQuery = '장위동 성북구 서울';
 const toFeatureCollection = (parcels: StandardParcel[]) => ({
   type: 'FeatureCollection' as const,
   features: parcels
-    .filter((parcel) => Boolean(parcel.geometry))
+    .filter((parcel) => Boolean(parcel.geometry) && canDisplayGeometryOnMap(parcel.crsStatus))
     .map((parcel) => ({
       type: 'Feature' as const,
       properties: {
@@ -67,6 +68,9 @@ export default function ApiLabPage() {
   const mapRef = useRef<maplibregl.Map | null>(null);
   const selectedOption = apiOptions.find((option) => option.value === api) ?? apiOptions[0];
   const selectedParcel = useMemo(() => parcels.find((parcel) => parcel.id === selectedParcelId) ?? null, [parcels, selectedParcelId]);
+  const crsSteps = useMemo(() => getCrsIntegrationSteps(), []);
+  const displayReadyCount = useMemo(() => parcels.filter((parcel) => parcel.geometry && canDisplayGeometryOnMap(parcel.crsStatus)).length, [parcels]);
+  const transformRequiredCount = useMemo(() => parcels.filter((parcel) => parcel.crsStatus === 'requires-transform').length, [parcels]);
 
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
@@ -236,8 +240,25 @@ export default function ApiLabPage() {
             <div className="mt-3 space-y-2 text-sm text-slate-700">
               <div><span className="font-medium">API:</span> {selectedOption.label}</div>
               <div><span className="font-medium">상태:</span> {response ? (response.ok ? '성공' : '실패') : '대기'}</div>
+              <div><span className="font-medium">지도 표시 가능:</span> {displayReadyCount.toLocaleString()}건</div>
+              <div><span className="font-medium">좌표 변환 필요:</span> {transformRequiredCount.toLocaleString()}건</div>
               {response?.error ? <div className="rounded bg-red-50 p-2 text-red-700">{response.error}</div> : null}
             </div>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-semibold">좌표계 통합 기준</h2>
+            <div className="mt-3 space-y-2 text-sm text-slate-700">
+              {crsSteps.map((step) => (
+                <div key={step.title} className="rounded border border-slate-200 p-2">
+                  <div className="font-medium text-slate-900">{step.title}</div>
+                  <div className="mt-1 text-slate-600">{step.description}</div>
+                </div>
+              ))}
+            </div>
+            <p className="mt-3 rounded bg-amber-50 p-2 text-sm text-amber-900">
+              좌표 변환이 필요한 geometry는 현재 지도에 바로 표시하지 않습니다. 실제 API 연동 전 proj4 또는 서버 GIS 변환 파이프라인으로 EPSG:4326 변환을 연결해야 합니다.
+            </p>
           </section>
 
           <section>
